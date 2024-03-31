@@ -149,13 +149,11 @@ class AutoClicker:
             if self.check_outside_page() or self.check_main_page():
                 # Если да, то выполняем действия по умолчанию
                 self.actions = self.ACTIONS_DEFAULT
-                # Если нет запала, идет атака и нет щита, то меняем действия на защиту
-                if (
-                    not self.check_fury()
-                    and self.check_attack()
-                    and self.check_sheeld()
-                ):
-                    self.actions = self.ACTIONS_DEFENCE
+                # Если нет запала:
+                if not self.check_fury():
+                    # Проверяем, если идет атака и нет щита, то меняем действия на защиту
+                    if self.check_attack() and not self.check_sheeld():
+                        self.actions = self.ACTIONS_DEFENCE
             # Если на странице квестов, то выполняем действия по квестам
             elif self.check_quests_page():
                 self.actions = self.ACTIONS_QUESTS

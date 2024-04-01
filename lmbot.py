@@ -3,7 +3,12 @@ import pyautogui as pg
 
 class AutoClicker:
     ICON_PATHS = {
+        "fury": "icons/fury.png",
+        "attack": "icons/attack.png",
+        "map": "icons/main_page.png",
+        "castle": "icons/outside_page.png",
         "sheeld": "icons/sheeld.png",
+        "quests": "icons/quests.png",
         "hands": "icons/hands.png",
         "chest": ["icons/chest.png", "icons/chest1.png"],
         "quest_g": ["icons/quest_g.png", "icons/questg_a.png"],
@@ -16,6 +21,15 @@ class AutoClicker:
         "quest_g": (1655, 430, 8, 1),
         "quest_d": (1655, 430, 9, 1),
     }
+    REGIONS = {
+        "quests": (815, 100, 1110, 160),
+        "castle": (40, 900, 1050, 220),
+        "map": (40, 900, 1050, 220),
+        "attack": (1560, 100, 1695, 235),
+        "shield": (1800, 320, 1915, 430),
+        "fury": (1800, 320, 1915, 430),
+    }
+
     SLEEP_INTERVAL = 1
     ACTIONS_DEFENCE = ["sheeld"]
     ACTIONS_DEFAULT = ["hands", "chest"]
@@ -68,77 +82,9 @@ class AutoClicker:
                     pg.click(1110, 500)
             print(f'Выполняем: {action_name.replace("_", " ").capitalize()}')
 
-    def check_quests_page(self):
+    def check_events(self, icon, region) -> bool:
         try:
-            pg.locateOnScreen(
-                "icons/quests.png",
-                region=(815, 100, 1110, 160),
-                grayscale=True,
-                confidence=0.9,
-            )
-            return True
-        except Exception:
-            return False
-
-    def check_main_page(self):
-        try:
-            pg.locateOnScreen(
-                "icons/main_page.png",
-                region=(40, 900, 1050, 220),
-                grayscale=True,
-                confidence=0.9,
-            )
-            return True
-        except Exception:
-            return False
-
-    def check_outside_page(self):
-        try:
-            pg.locateOnScreen(
-                "icons/outside_page.png",
-                region=(40, 900, 1050, 220),
-                grayscale=True,
-                confidence=0.9,
-            )
-            return True
-        except Exception:
-            return False
-
-    def check_attack(self):
-        try:
-            pg.locateOnScreen(
-                "icons/attack.png",
-                region=(1560, 100, 1695, 235),
-                grayscale=True,
-                confidence=0.9,
-            )
-            print("ATTENTION!!! You're under attack!")
-            return True
-        except Exception:
-            return False
-
-    def check_sheeld(self):
-        try:
-            pg.locateOnScreen(
-                "icons/sheeld.png",
-                region=(1800, 320, 1915, 430),
-                grayscale=True,
-                confidence=0.9,
-            )
-            return True
-        except Exception:
-            print("Нет щита")
-            return False
-
-    def check_fury(self):
-        try:
-            pg.locateOnScreen(
-                "icons/fury.png",
-                region=(1800, 320, 1915, 430),
-                grayscale=True,
-                confidence=0.9,
-            )
-            print("Действует запал битвы!")
+            pg.locateOnScreen(icon, region, grayscale=True, confidence=0.9)
             return True
         except Exception:
             return False
@@ -146,16 +92,22 @@ class AutoClicker:
     def main_loop(self):
         while True:
             # Проверяем находимся ли мы на главной странице или на странице квестов
-            if self.check_outside_page() or self.check_main_page():
+            if self.check_events(
+                self.ICON_PATHS["map"], self.REGIONS["map"]
+            ) or self.check_events(self.ICON_PATHS["castle"], self.REGIONS["castle"]):
                 # Если да, то выполняем действия по умолчанию
                 self.actions = self.ACTIONS_DEFAULT
                 # Если нет запала:
-                if not self.check_fury():
+                if not self.check_events(self.ICON_PATHS["fury"], self.REGIONS["fury"]):
                     # Проверяем, если идет атака и нет щита, то меняем действия на защиту
-                    if self.check_attack() and not self.check_sheeld():
+                    if self.check_events(
+                        self.ICON_PATHS["attack"], self.REGIONS["attack"]
+                    ) and not self.check_events(
+                        self.ICON_PATHS["sheeld"], self.REGIONS["sheeld"]
+                    ):
                         self.actions = self.ACTIONS_DEFENCE
             # Если на странице квестов, то выполняем действия по квестам
-            elif self.check_quests_page():
+            elif self.check_events(self.ICON_PATHS["quests"], self.REGIONS["quests"]):
                 self.actions = self.ACTIONS_QUESTS
             # Выполняем действия
             for action in self.actions:
